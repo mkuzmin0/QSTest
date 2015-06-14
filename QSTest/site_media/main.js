@@ -121,7 +121,7 @@ $('#save_button').click(function() {
 
 $('#reset_button').click(function() { 
 	$.ajax({
-		url: '/reset',
+		url: '/db_reset/',
 		type: 'POST',
 		success: function (result) {
 		  load_cache_tree();

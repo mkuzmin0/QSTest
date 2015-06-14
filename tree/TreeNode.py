@@ -67,7 +67,7 @@ class TreeNode(object):
     @property
     def json_params(self):
         return '"id": "{id}", "text": "{text}", '.format(id=self.key, text=self.value) + \
-            '"state": {"expanded": true}'
+            '"state": {"expanded": true}' # , "color": "#F51616"'
 
 
 class JSONTreeMixin(object):
@@ -78,6 +78,8 @@ class JSONTreeMixin(object):
                 self._json += ', "nodes": ['
                 for c in node.get_children():
                     self._json += '{' + c.json_params
+                    if c.marked_as_del:
+                        self._json += ', "color": "#F51616"'
                     self._tree_walk(c)
 
                 self._json = self._json.rstrip(',')
