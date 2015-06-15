@@ -22,15 +22,14 @@ class DBTree(TreeNode, JSONTreeMixin):
             self._qs_add_node(qs_entry)
 
     def add_node(self, key, value, parent_key):
-        tmp_node = self._get_node_by_entry_key(key)
+        tmp_node = self.get_node_by_entry_key(key)
         if tmp_node is not None:
             return tmp_node
         else:
-            parent_node = self._get_node_by_entry_key(parent_key)
+            parent_node = self.get_node_by_entry_key(parent_key)
 
             if parent_node is None:
-                logger.error('An attempt to add new node (key={}, value={}) has been failed: parent \
-                                    reference is not specified for the given node.'.format(key, value))
+                logger.error('An attempt to add new node (key={}, value={}) has been failed: parent reference is not specified for the given node.'.format(key, value))
                 return None
 
             new_node = TreeNode(key, value, parent_key)
@@ -39,7 +38,7 @@ class DBTree(TreeNode, JSONTreeMixin):
             return new_node
 
     # This method is used to recursively go through the path for each TreeNode item and build a tree
-    def add_nodes_subtree(self, node_obj):
+    """def add_nodes_subtree(self, node_obj):
         if node_obj is not None:
             logger.debug('Processing "{}" entry.'.format(node_obj.value))
             tree_node = self._get_node_by_entry_key(node_obj.key)
@@ -62,10 +61,10 @@ class DBTree(TreeNode, JSONTreeMixin):
                     if parent_node is not None:
                         parent_node.add_child(node_obj)
                         self.nodes.append(node_obj)
-                        return node_obj
+                        return node_obj"""
 
     def edit_node(self, key, value):
-        node = self._get_node_by_entry_key(key)
+        node = self.get_node_by_entry_key(key)
         if node is None:
             logger.error('There is no node for the specified key value: {}'.format(key))
             return
@@ -77,7 +76,7 @@ class DBTree(TreeNode, JSONTreeMixin):
         node.set_value(value)
 
     def del_node(self, key):
-        node = self._get_node_by_entry_key(key)
+        node = self.get_node_by_entry_key(key)
         logger.debug('Going to delete "{}" node.'.format(node.value))
         if node is None:
             logger.error('There is no node for the specified key value: {}'.format(key))
@@ -92,7 +91,7 @@ class DBTree(TreeNode, JSONTreeMixin):
     # This method is used to recursively go through the path for each queryset item and build a tree
     def _qs_add_node(self, entry_obj):
         logger.debug('Processing {} entry.'.format(entry_obj))
-        tmp_node = self._get_node_by_entry_key(entry_obj.id)
+        tmp_node = self.get_node_by_entry_key(entry_obj.id)
         if tmp_node is not None:
             return tmp_node
         else:
@@ -109,12 +108,13 @@ class DBTree(TreeNode, JSONTreeMixin):
 
             if parent_node is not None:
                 new_node = TreeNode(entry_obj.id, entry_obj.value)
-                new_node.set_parent(parent_node)
+                # new_node.set_parent(parent_node)
+                new_node.set_parent(parent_node.key)
                 parent_node.add_child(new_node)
                 self.nodes.append(new_node)
                 return new_node
 
-    def _get_node_by_entry_key(self, key):
+    def get_node_by_entry_key(self, key):
         for node in self.nodes:
             if node.key == key:
                 return node
@@ -145,7 +145,6 @@ class DBTree(TreeNode, JSONTreeMixin):
 
     def to_json(self):
         self._json = '[{' + self.root.json_params
-
         self._tree_walk(self.root)
         self._json = self._json.rstrip(',')
         self._json += ']'

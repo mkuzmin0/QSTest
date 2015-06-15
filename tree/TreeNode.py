@@ -1,10 +1,12 @@
 class TreeNode(object):
 
-    def __init__(self, key=None, value=None, parent=None, marked_as_del=False):
+    def __init__(self, key=None, value=None, parent=None, marked_as_del=False, marked_as_edited=False, marked_as_new=False):
         self.__key = key
         self.__value = value
         self.__parent = parent
         self.__marked_as_del = marked_as_del
+        self.__marked_as_edited = marked_as_edited
+        self.__marked_as_new = marked_as_new
         self.__children = []
         self._json = {}
     """def __init__(self, key=None, value=None, parent_key=None, marked_as_del=False):
@@ -30,6 +32,14 @@ class TreeNode(object):
     def marked_as_del(self):
         return self.__marked_as_del
 
+    @property
+    def marked_as_edited(self):
+        return self.__marked_as_edited
+
+    @property
+    def marked_as_new(self):
+        return self.__marked_as_new
+
     def get_children(self):
         return self.__children
 
@@ -42,16 +52,20 @@ class TreeNode(object):
     def mark_as_del(self):
         self.__marked_as_del = True
 
+    def mark_as_edit(self):
+        self.__marked_as_edited = True
+
+    def mark_as_new(self):
+        self.__marked_as_new = True
+
+    def unmark_as_edit(self):
+        self.__marked_as_edited = False
+
+    def unmark_as_new(self):
+        self.__marked_as_new = False
+
     def set_value(self, value):
         self.__value = value
-
-    def append_dict_for_child(self, child):
-        self._json['nodes']
-
-    def add_node_dict(self):
-        self._json['id'] = self.key
-        self._json['text'] = self.value
-        self._json['nodes'] = []
 
     # This method is used to recursively mark a subtree for the given node as deleted.
     def mark_subtree_as_deleted(self):
@@ -66,8 +80,18 @@ class TreeNode(object):
 
     @property
     def json_params(self):
-        return '"id": "{id}", "text": "{text}", '.format(id=self.key, text=self.value) + \
-            '"state": {"expanded": true}' # , "color": "#F51616"'
+        json_str = '"id": "{id}", "text": "{text}", '.format(id=self.key, text=self.value) + \
+            '"state": {"expanded": true}'
+        if self.marked_as_del:
+            json_str += ', "color": "#F51616"'
+            json_str += ', "backColor": "E8E8E8"'
+            json_str += ', "selectable": false'
+        elif self.marked_as_edited:
+            json_str += ', "color": "F7C707"'
+        elif self.marked_as_new:
+            json_str += ', "color": "07F7A3"'
+
+        return json_str
 
 
 class JSONTreeMixin(object):
@@ -78,8 +102,6 @@ class JSONTreeMixin(object):
                 self._json += ', "nodes": ['
                 for c in node.get_children():
                     self._json += '{' + c.json_params
-                    if c.marked_as_del:
-                        self._json += ', "color": "#F51616"'
                     self._tree_walk(c)
 
                 self._json = self._json.rstrip(',')

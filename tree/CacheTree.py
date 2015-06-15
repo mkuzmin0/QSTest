@@ -11,42 +11,72 @@ class CacheTree(TreeNode, JSONTreeMixin):
     def __init__(self, root=None):
         TreeNode.__init__(self)
         self.nodes = []
+        self.roots = []
         self.root = root
         self.nodes_edit = []
         self.nodes_delete = []
         self.nodes_add = []
 
     def cache_node(self, parent_key, key, value):
-        if self._get_node_by_key(key) is not None:
+        logger.debug('Caching node: key={}, value={}, parent_key={}.'.format(key, value, parent_key))
+        if self.get_node_by_key(key) is not None:
             logger.debug('Such element is already in the cache nodes list.')
             return
 
-        parent_node = self._get_node_by_key(parent_key)
         cached_node = TreeNode(key, value)
+        parent_node = None
 
-        if parent_node is not None:
+        if parent_key:
+            parent_node = self.get_node_by_key(parent_key)
+            cached_node.set_parent(parent_key)
+
+        if parent_node:
             logger.debug('Parent node "{}" was found.'.format(parent_node.value))
-            cached_node.set_parent(parent_node)
-            parent_node.add_child(cached_node)
+            # cached_node.set_parent(parent_node)
+            # cached_node.set_parent(parent_key)
+            if not parent_node.marked_as_del:
+                parent_node.add_child(cached_node)
+            else:
+                logger.debug('Parent node "{}" is marked to be deleted, will ignore the request.'.format(parent_node.value))
+                return
         else:
-            logger.debug('Cache node "{}" is not linked yet.'.format(cached_node.value))
+            logger.debug('Parent node was not found.')
+            self.roots.append(cached_node)
 
         self.nodes.append(cached_node)
         self._link_by_parent(cached_node)
 
     def _link_by_parent(self, parent_node):
+        roots_to_remove = []
+        logger.debug('Link process called for node: key={}, value={}, parent={}'.format(parent_node.key, parent_node.value, parent_node.parent))
         if len(self.nodes) < 2:
             return
 
+        for r in self.roots:
+            logger.debug('Looping through the root list, "{}" node is processed.'.format(r.value))
+            if r.parent is None:
+                logger.debug('Parent is not specified.')
+                # According to the initial conditions there should be the only one root with no parent specified.
+                self.root = r
+                # self.roots.remove(r)
+            else:
+                logger.debug('Parent ref: {}.'.format(r.parent))
+                if r.parent == parent_node.key:
+                    # parent_node.add_child(r)
+                    roots_to_remove.append(r)
+                    # self.roots.remove(r)
+
+        for rem in roots_to_remove:
+            self.roots.remove(rem)
+
         for n in self.nodes:
-            # TODO: change to if n.parent == parent_node.key
-            if n.parent is not None:
-                # Assume this is the root otherwise
-                if n.parent.key == parent_node.key:
-                    parent_node.set_child(n)
+            if n.parent is not None and n.parent == parent_node.key:
+            # TODO: change to if n.parent.key == parent_node.key
+                parent_node.add_child(n)
 
     def add_node(self, parent_key, value):
-        parent_node = self._get_node_by_key(parent_key)
+        logger.debug('Add node: parent_key={}, value={}.'.format(parent_key, value))
+        parent_node = self.get_node_by_key(parent_key)
         if parent_node is None:
             logger.debug('Parent node (key={}) was not found in the cache nodes list.'.format(parent_key))
             return
@@ -55,28 +85,15 @@ class CacheTree(TreeNode, JSONTreeMixin):
             logger.debug('Parent node (key={}) is marked as deleted, will ignore the request.'.format(parent_key))
             return
 
-        new_node = TreeNode(randrange(1000000), value, parent_node)
-        parent_node.add_child(new_node)
-        self.nodes.append(new_node)
-        self.nodes_add.append(new_node)
-
-    """def add_node(self, parent_key, value):
-        parent_node = self._get_node_by_key(parent_key)
-        if parent_node is None:
-            logger.debug('Parent node (key={}) was not found in the cache nodes list.'.format(parent_key))
-            return
-
-        if parent_node.marked_as_del:
-            logger.debug('Parent node (key={}) is marked as deleted, will ignore the request.'.format(parent_key))
-            return
-
+        # It's not good, but may be accepted as a temporary test solution
         new_node = TreeNode(randrange(1000000), value, parent_key)
         parent_node.add_child(new_node)
         self.nodes.append(new_node)
-        self.nodes_add.append(new_node)"""
+        new_node.mark_as_new()
+        self.nodes_add.append(new_node)
 
     def edit_node(self, key, value):
-        node = self._get_node_by_key(key)
+        node = self.get_node_by_key(key)
         if node is None:
             logger.error('There is no node for the specified key value: {}'.format(key))
             return
@@ -85,11 +102,12 @@ class CacheTree(TreeNode, JSONTreeMixin):
             logger.debug('Node "{}" is marked as deleted, will ignore the request.'.format(node.value))
             return
 
+        node.mark_as_edit()
         self.nodes_edit.append(node)
         node.set_value(value)
 
     def del_node(self, key):
-        node = self._get_node_by_key(key)
+        node = self.get_node_by_key(key)
         if node is None:
             logger.error('There is no node for the specified key value: {}'.format(key))
             return
@@ -101,19 +119,21 @@ class CacheTree(TreeNode, JSONTreeMixin):
         self.nodes_delete.append(node)
         node.mark_subtree_as_deleted()
 
-    def _get_node_by_key(self, key):
+    def get_node_by_key(self, key):
         for n in self.nodes:
             if n.key == key:
                 return n
 
     def save(self, db_tree):
         for n in self.nodes_add:
-            db_tree.add_node(n.key, n.value, n.parent.key)
+            db_tree.add_node(n.key, n.value, n.parent)
+            n.unmark_as_new()
 
         self.nodes_add = []
 
         for n in self.nodes_edit:
             db_tree.edit_node(n.key, n.value)
+            n.unmark_as_edit()
 
         self.nodes_edit = []
 
@@ -145,3 +165,15 @@ class CacheTree(TreeNode, JSONTreeMixin):
 
         if cur_node.get_children() and self.show_container:
             self.show_container.pop()
+
+    def to_json(self):
+        self._json = '['
+        for r in self.roots:
+            self._json += '{' + r.json_params
+            self._tree_walk(r)
+
+        self._json = self._json.rstrip(',')
+        self._json += ']'
+
+        logger.debug(self._json)
+        return self._json
