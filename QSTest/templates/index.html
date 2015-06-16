@@ -15,6 +15,30 @@
 		</style>
 </head>
   <body>
+	<h3 style="text-align: center;">How to use it:</h3>
+
+    <div style = "margin-left: 50px;">
+        <p class="description">
+
+        <p style = "margin-left: 10px;">- Button <b>"+"</b> is used to add new nodes. Just select a node you want to be
+							a parent, enter new node name in the <b>"Selected Node Value"</b>
+							text input control(it could be confusing:)) and click <b>"+"</b> button.
+        <p style = "margin-left: 10px;">- Button <b>"-"</b> is used to delete nodes(with the whole subtree).
+							Just select a node you want to delete and click <b>"-"</b>  button.
+        <p style = "margin-left: 10px;">- Button <b>"a"</b> is used to edit node values. Select a node you want to edit,
+							enter new value in the <b>"Selected Node Value"</b> text input control and
+							click <b>"a"</b> button.
+		<p style = "margin-left: 10px;">- Button <b>"Apply"</b> is to save all changes to the DB(emulation).
+		<p style = "margin-left: 10px;">- Button <b>"Reset"</b> brings application to the initial state.
+
+        </p>
+        Also, different types of nodes are marked with colors:
+		<p><font color="07F7A3">New nodes</font> </p>
+		<p><font color="F7C707">Edited nodes</font> </p>
+		<p><font color="#F51616">Deleted nodes</font> </p>
+    </div>
+  
+  
 	<div class="row">
 		<div class="col-md-5 tree_class" id="cash_tree"></div>
 		<div class="col-md-1" style="margin-top:100px;"><button id="cache_button"><<<</button></div>
