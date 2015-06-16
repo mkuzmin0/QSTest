@@ -1,0 +1,1 @@
+web: gunicorn QSTest.wsgi --log-file -

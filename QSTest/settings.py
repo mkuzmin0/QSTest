@@ -77,8 +77,14 @@ WSGI_APPLICATION = 'QSTest.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'dfnciup3e4t8p2',
+        'USER': 'giydkejsbqeove',
+        'PASSWORD': 'B1f6G6k7kLDD9wR2sB6nhVdt6i',
+        'HOST': 'ec2-54-228-180-92.eu-west-1.compute.amazonaws.com',
+        'PORT': '5432',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
