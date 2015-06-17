@@ -41,32 +41,6 @@ class DBTree(TreeNode, JSONTreeMixin):
             parent_node.add_child(new_node)
             return 0
 
-    # This method is used to recursively go through the path for each TreeNode item and build a tree
-    """def add_nodes_subtree(self, node_obj):
-        if node_obj is not None:
-            logger.debug('Processing "{}" entry.'.format(node_obj.value))
-            tree_node = self._get_node_by_entry_key(node_obj.key)
-            if tree_node is not None:
-                return tree_node
-            else:
-                parent = node_obj.parent
-
-                if parent is None:
-                    logger.error('An attempt to add new node "{}" has been failed: parent \
-                                    reference is not specified for the given node.'.format(node_obj.value))
-                    return None
-                else:
-                    parent_node = self._get_node_by_entry_key(node_obj.parent.key)
-                    if parent_node is None:
-                        logger.debug('Node "{}" parent referecne({}) was not found in the node list.\
-                                    Going to insert it.'.format(node_obj.value, parent.value))
-                        parent_node = self.add_node(parent)
-
-                    if parent_node is not None:
-                        parent_node.add_child(node_obj)
-                        self.nodes.append(node_obj)
-                        return node_obj"""
-
     def edit_node(self, key, value):
         node = self.get_node_by_entry_key(key)
         if node is None:

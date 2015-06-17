@@ -32,8 +32,6 @@ class CacheTree(TreeNode, JSONTreeMixin):
 
         if parent_node:
             logger.debug('Parent node "{}" was found.'.format(parent_node.value))
-            # cached_node.set_parent(parent_node)
-            # cached_node.set_parent(parent_key)
             """if not parent_node.marked_as_del:
                 parent_node.add_child(cached_node)
             else:
@@ -72,7 +70,6 @@ class CacheTree(TreeNode, JSONTreeMixin):
 
         for n in self.nodes:
             if n.parent is not None and n.parent == parent_node.key:
-            # TODO: change to if n.parent.key == parent_node.key
                 parent_node.add_child(n)
 
         self._validate_tree()
@@ -131,8 +128,6 @@ class CacheTree(TreeNode, JSONTreeMixin):
         for n in self.nodes:
             if n.key == key:
                 return n
-
-    #def edit_node(self, key, value, db_tree):
 
     def save(self, db_tree):
         for n in self.nodes_delete:

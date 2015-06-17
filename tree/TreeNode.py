@@ -9,12 +9,6 @@ class TreeNode(object):
         self.__marked_as_new = marked_as_new
         self.__children = []
         self._json = {}
-    """def __init__(self, key=None, value=None, parent_key=None, marked_as_del=False):
-        self.__key = key
-        self.__value = value
-        self.__parent = parent_key
-        self.__marked_as_del = marked_as_del
-        self.__children = []"""
 
     @property
     def key(self):
