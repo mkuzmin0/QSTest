@@ -132,23 +132,35 @@ class CacheTree(TreeNode, JSONTreeMixin):
             if n.key == key:
                 return n
 
+    #def edit_node(self, key, value, db_tree):
+
     def save(self, db_tree):
-        for n in self.nodes_add:
-            db_tree.add_node(n.key, n.value, n.parent)
-            n.unmark_as_new()
-
-        self.nodes_add = []
-
-        for n in self.nodes_edit:
-            db_tree.edit_node(n.key, n.value)
-            n.unmark_as_edit()
-
-        self.nodes_edit = []
-
         for n in self.nodes_delete:
             db_tree.del_node(n.key)
 
         self.nodes_delete = []
+
+        self._validate_tree()
+
+        for n in self.nodes_add:
+            res = db_tree.add_node(n.key, n.value, n.parent)
+            if res == 0:
+                n.unmark_as_new()
+            elif res == 3:
+                n.mark_subtree_as_deleted()
+
+        self.nodes_add = []
+
+        for n in self.nodes_edit:
+            res = db_tree.edit_node(n.key, n.value)
+            if res == 0:
+                n.unmark_as_edit()
+            elif res == 3:
+                n.mark_subtree_as_deleted()
+
+        self.nodes_edit = []
+
+        self._validate_tree()
 
     def show(self):
         self.show_container = []
