@@ -74,10 +74,16 @@ class CacheTree(TreeNode, JSONTreeMixin):
 
         self._validate_tree()
 
-    def _validate_tree(self):
-        for n in self.nodes:
-            if n.marked_as_del:
-                n.mark_subtree_as_deleted()
+    def _validate_tree(self, db_tree=None):
+        if not db_tree:
+            for n in self.nodes:
+                if n.marked_as_del:
+                    n.mark_subtree_as_deleted()
+
+        else:
+            for n in self.nodes:
+                if db_tree.get_node_by_entry_key(n.key).marked_as_del:
+                    n.mark_as_del()
 
     def add_node(self, parent_key, value):
         logger.debug('Add node: parent_key={}, value={}.'.format(parent_key, value))
@@ -131,11 +137,13 @@ class CacheTree(TreeNode, JSONTreeMixin):
 
     def save(self, db_tree):
         for n in self.nodes_delete:
+            n.mark_subtree_as_deleted()
             db_tree.del_node(n.key)
 
         self.nodes_delete = []
 
-        self._validate_tree()
+        # To have an actual cache after db call(in case of deleted subtree)
+        self._validate_tree(db_tree)
 
         for n in self.nodes_add:
             # Fixing the problem of inserting childs for their deleted parents
