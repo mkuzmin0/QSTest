@@ -79,7 +79,8 @@ class CacheTree(TreeNode, JSONTreeMixin):
 
     def _validate_tree(self):
         for n in self.nodes:
-            n.mark_subtree_as_deleted()
+            if n.marked_as_del:
+                n.mark_subtree_as_deleted()
 
     def add_node(self, parent_key, value):
         logger.debug('Add node: parent_key={}, value={}.'.format(parent_key, value))
