@@ -82,8 +82,10 @@ class CacheTree(TreeNode, JSONTreeMixin):
 
         else:
             for n in self.nodes:
-                if db_tree.get_node_by_entry_key(n.key).marked_as_del:
-                    n.mark_as_del()
+                db_node = db_tree.get_node_by_entry_key(n.key)
+                if db_node:
+                    if db_node.marked_as_del:
+                        n.mark_as_del()
 
     def add_node(self, parent_key, value):
         logger.debug('Add node: parent_key={}, value={}.'.format(parent_key, value))
@@ -136,6 +138,7 @@ class CacheTree(TreeNode, JSONTreeMixin):
                 return n
 
     def save(self, db_tree):
+        logger.debug("1")
         for n in self.nodes_delete:
             n.mark_subtree_as_deleted()
             db_tree.del_node(n.key)
@@ -143,31 +146,35 @@ class CacheTree(TreeNode, JSONTreeMixin):
         self.nodes_delete = []
 
         # To have an actual cache after db call(in case of deleted subtree)
-        self._validate_tree(db_tree)
-
-        for n in self.nodes_add:
-            # Fixing the problem of inserting childs for their deleted parents
-            res = db_tree.add_node(n.key, n.value, n.parent)
-            if res == 0:
-                n.unmark_as_new()
-            elif res == 3:
-                parent_node = self.get_node_by_key(n.parent)
-                parent_node.mark_subtree_as_deleted()
-
-        self.nodes_add = []
+        # self._validate_tree(db_tree)
 
         for n in self.nodes_edit:
             # Fixing the problem of editing childs for their deleted parents
             res = db_tree.edit_node(n.key, n.value)
             if res == 0:
                 n.unmark_as_edit()
+
             elif res == 3:
                 parent_node = self.get_node_by_key(n.parent)
-                parent_node.mark_subtree_as_deleted()
+                if parent_node:
+                    parent_node.mark_subtree_as_deleted()
 
         self.nodes_edit = []
+        logger.debug("2")
+        for n in self.nodes_add:
+            # Fixing the problem of inserting childs for their deleted parents
+            res = db_tree.add_node(n.key, n.value, n.parent)
+            logger.debug("3")
+            if res == 0:
+                n.unmark_as_new()
+            elif res == 3:
+                parent_node = self.get_node_by_key(n.parent)
+                if parent_node:
+                    parent_node.mark_subtree_as_deleted()
 
-        self._validate_tree()
+        self.nodes_add = []
+
+        self._validate_tree(db_tree)
 
     def show(self):
         self.show_container = []

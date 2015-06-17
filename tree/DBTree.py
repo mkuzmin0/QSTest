@@ -50,10 +50,11 @@ class DBTree(TreeNode, JSONTreeMixin):
         if node.value == value:
             logger.info('There is no need to update, node "{}" already has value = {}.'.format(node.value, value))
             return 2
-
-        if self.get_node_by_entry_key(node.parent).marked_as_del:
-            logger.debug('Parent node is marked as deleted, will ignore the request')
-            return 3
+        parent_node = self.get_node_by_entry_key(node.parent)
+        if parent_node:
+            if parent_node.marked_as_del:
+                logger.debug('Parent node is marked as deleted, will ignore the request')
+                return 3
 
         node.set_value(value)
         return 0
