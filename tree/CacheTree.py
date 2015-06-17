@@ -138,20 +138,24 @@ class CacheTree(TreeNode, JSONTreeMixin):
         self._validate_tree()
 
         for n in self.nodes_add:
+            # Fixing the problem of inserting childs for their deleted parents
             res = db_tree.add_node(n.key, n.value, n.parent)
             if res == 0:
                 n.unmark_as_new()
             elif res == 3:
-                n.mark_subtree_as_deleted()
+                parent_node = self.get_node_by_key(n.parent)
+                parent_node.mark_subtree_as_deleted()
 
         self.nodes_add = []
 
         for n in self.nodes_edit:
+            # Fixing the problem of editing childs for their deleted parents
             res = db_tree.edit_node(n.key, n.value)
             if res == 0:
                 n.unmark_as_edit()
             elif res == 3:
-                n.mark_subtree_as_deleted()
+                parent_node = self.get_node_by_key(n.parent)
+                parent_node.mark_subtree_as_deleted()
 
         self.nodes_edit = []
 
