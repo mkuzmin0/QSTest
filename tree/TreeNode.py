@@ -69,7 +69,9 @@ class TreeNode(object):
 
     # This method is used to recursively mark a subtree for the given node as deleted.
     def mark_subtree_as_deleted(self):
-        self.mark_as_del()
+        if not self.marked_as_del:
+            self.mark_as_del()
+
         l = len(self.get_children())
         if l > 0:
             for child in self.get_children():

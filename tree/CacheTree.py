@@ -34,11 +34,12 @@ class CacheTree(TreeNode, JSONTreeMixin):
             logger.debug('Parent node "{}" was found.'.format(parent_node.value))
             # cached_node.set_parent(parent_node)
             # cached_node.set_parent(parent_key)
-            if not parent_node.marked_as_del:
+            """if not parent_node.marked_as_del:
                 parent_node.add_child(cached_node)
             else:
                 logger.debug('Parent node "{}" is marked to be deleted, will ignore the request.'.format(parent_node.value))
-                return
+                return"""
+            parent_node.add_child(cached_node)
         else:
             logger.debug('Parent node was not found.')
             self.roots.append(cached_node)
@@ -73,6 +74,12 @@ class CacheTree(TreeNode, JSONTreeMixin):
             if n.parent is not None and n.parent == parent_node.key:
             # TODO: change to if n.parent.key == parent_node.key
                 parent_node.add_child(n)
+
+        self._validate_tree()
+
+    def _validate_tree(self):
+        for n in self.nodes:
+            n.mark_subtree_as_deleted()
 
     def add_node(self, parent_key, value):
         logger.debug('Add node: parent_key={}, value={}.'.format(parent_key, value))
